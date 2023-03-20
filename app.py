@@ -44,6 +44,20 @@ def lambda_handler(event, context):
         response = runtime.invoke_endpoint(EndpointName=ENDPOINT_NAME, ContentType='application/json', Body=payload)
         # get the output results
         result = json.loads(response['Body'].read().decode())
+        
+        indices = np.where(np.array(result['predictions'][0]['output_1']) > 0.5)
+        xywh = np.array(result['predictions'][0]['output_0'])[indices]
+        xywh[:,0] *= 640
+        xywh[:,1] *= 640
+        xywh[:,2] *= 640
+        xywh[:,3] *= 640
+        xywh = xywh.astype(int)
+        scores = np.array(result['predictions'][0]['output_1'])[indices]
+        classes = np.array(result['predictions'][0]['output_2'])[indices]
+        res_ls = []
+        for idx, rect in enumerate(xywh):
+            res_ls.append([classes[idx], rect.tolist()])
+        
         end_time_iter = time.time()
         # get the total time taken for inference
         inference_time = round((end_time_iter - start_time_iter)*100)/100
@@ -54,17 +68,6 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "body": json.dumps({
                 "message": "Inference Time:// " + str(inference_time) + " seconds.",
-                "results": result
+                "results": res_ls
                 }),
             }
-
-# local testing
-#e = {
-#    "body": {
-#    "key": "msm854_fol. 47(v,r) expell_fol1L.jpg",
-#    "bucket": "msm854"
-#    }
-#}
-
-#i = lambda_handler(event = e, context = None)
-#print(i, 'i')
