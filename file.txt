@@ -1,0 +1,26 @@
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+
+
+
+aws ecr create-repository --repository-name yolo-tensor-14latin-bboxes --image-scanning-configuration scanOnPush=true --image-tag-mutability MUTABLE
+
+docker tag  yolo-tensor-14latin-bboxes:latest 597268614173.dkr.ecr.us-east-1.amazonaws.com/yolo-tensor-14latin-bboxes:latest
+
+docker push 597268614173.dkr.ecr.us-east-1.amazonaws.com/yolo-tensor-14latin-bboxes:latest  
+
+
+aws s3 cp app.zip s3://sage-made/lambda/layers/yolo-tensor-app
+aws lambda create-function --function-name yolov-tensor-14latin-bboxes --handler app.lambda_handler --region us-east-1 --runtime python3.7 --environment "Variables={BUCKET_NAME=sage-made, S3_KEY=lambda/layers/yolo-tensor-app/yolo-tensor-14latin-bboxes.zip}" --code S3Bucket=sage-made,S3Key="lambda/layers/yolo-tensor-app/yolo-tensor-14latin-bboxes.zip>" --role arn:aws:iam::597268614173:role/lambda_allowance_s3_sagemaker_role
+aws lambda update-function-configuration --function-name yolov-tensor-14latin-bboxes --layers cv2
+aws lambda update-function-configuration --function-name yolo-tensor-14latin-bboxes --layers arn:aws:lambda:us-east-1:597268614173:layer:cv2:1
+
+
+e = {
+    "body": {
+    "key": "msm854_fol. 47(v,r) expell_fol1L.jpg",
+    "bucket": "msm854"
+    }
+}
+
+
+docs: https://aws.amazon.com/blogs/machine-learning/scale-yolov5-inference-with-amazon-sagemaker-endpoints-and-aws-lambda/
